@@ -1,0 +1,104 @@
+
+-- its made by frostedflakes666
+-- its a like slow moving afk aura kill farmer for games that you have kill aura you can use this and afk
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local PathfindingService = game:GetService("PathfindingService")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+
+local SPEED = 16
+local UPDATE_RATE = 0.1 -- Super fast updates
+local MAX_DIST = 1000
+
+
+local targetPlayer = nil
+local moveConnection
+local antiAFKConnection
+
+
+local function cleanup()
+    if moveConnection then moveConnection:Disconnect() end
+    if antiAFKConnection then antiAFKConnection:Disconnect() end
+    for _, v in pairs(RootPart:GetChildren()) do
+        if v.Name:find("Walker") then v:Destroy() end
+    end
+end
+
+
+local function getClosestPlayer()
+    local closest, dist = nil, MAX_DIST
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local d = (RootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if d < dist then
+                dist = d
+                closest = p
+            end
+        end
+    end
+    return closest
+end
+
+-- Perfect movement
+local function startWalking()
+    cleanup()
+    
+    Humanoid.WalkSpeed = SPEED
+    
+    moveConnection = RunService.Heartbeat:Connect(function()
+        targetPlayer = getClosestPlayer()
+        
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPos = targetPlayer.Character.HumanoidRootPart.Position
+            
+            -- Multiple movement methods for reliability
+            Humanoid:MoveTo(targetPos)
+            
+            -- BodyVelocity for smooth movement
+            local bv = RootPart:FindFirstChild("WalkerBV")
+            if not bv then
+                bv = Instance.new("BodyVelocity")
+                bv.Name = "WalkerBV"
+                bv.MaxForce = Vector3.new(1e5, 0, 1e5)
+                bv.Parent = RootPart
+            end
+            bv.Velocity = (targetPos - RootPart.Position).Unit * SPEED
+        end
+    end)
+end
+
+
+local function startAntiAFK()
+    local lastJump = 0
+    antiAFKConnection = RunService.Heartbeat:Connect(function()
+        if tick() - lastJump > math.random(25, 45) then
+            Humanoid.Jump = true
+            lastJump = tick()
+        end
+    end)
+end
+
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+    wait(2)
+    startWalking()
+    startAntiAFK()
+end)
+
+
+cleanup()
+startWalking()
+startAntiAFK()
+
+print("✅ Moving IMMEDIATELY to nearest players")
+print("✅ Super smooth following")
+print("✅ Anti-AFK protection active")
