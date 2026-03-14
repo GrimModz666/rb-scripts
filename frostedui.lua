@@ -1,5 +1,5 @@
 -- ===========================
--- Frosted UI Library
+-- Frosted UI Library vBeta
 -- ===========================
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -55,8 +55,8 @@ discordButton.TextColor3 = Color3.new(1,1,1)
 discordButton.Font = Enum.Font.GothamBold
 discordButton.Text = "Join Discord"
 discordButton.BorderSizePixel = 0
-discordButton.Visible = false
 Instance.new("UICorner", discordButton).CornerRadius = UDim.new(0,12)
+discordButton.Visible = false
 discordButton.Parent = loadingFrame
 
 local okButton = discordButton:Clone()
@@ -78,6 +78,7 @@ discordButton.MouseButton1Click:Connect(function()
         syn.request({Url = url, Method = "GET"})
     else
         setclipboard(url)
+        MenuLib:Notify("Discord Link Copied!", "The invite link has been copied to your clipboard.")
     end
 end)
 
@@ -158,7 +159,7 @@ tabContainer.Size = UDim2.new(1, -20, 1, -120)
 tabContainer.Position = UDim2.new(0,10,0,100)
 tabContainer.BackgroundTransparency = 1
 
--- Add UIListLayout for tab content
+-- Add UIListLayout for tab content container (so tabs stack properly)
 local tabContentLayout = Instance.new("UIListLayout")
 tabContentLayout.FillDirection = Enum.FillDirection.Vertical
 tabContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -177,7 +178,7 @@ credit.Font = Enum.Font.Gotham
 credit.TextSize = 13
 credit.TextColor3 = Color3.fromRGB(150,150,150)
 
--- Draggable
+-- Draggable function
 local function makeDraggable(frame)
     local dragging = false
     local dragStart, startPos
@@ -265,12 +266,12 @@ function MenuLib:CreateTab(name)
     tab.TabContent.Visible = false
     tab.TabContent.Parent = tabContainer
 
-    -- Add UIListLayout for this tab content
+    -- Add UIListLayout for tab content
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Vertical
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     layout.VerticalAlignment = Enum.VerticalAlignment.Top
-    layout.Padding = UDim.new(0, 8)
+    layout.Padding = UDim.new(0, 10)
     layout.Parent = tab.TabContent
 
     -- Button API
@@ -291,9 +292,6 @@ function MenuLib:CreateTab(name)
         button.MouseButton1Click:Connect(callback)
         table.insert(tab.Buttons, button)
     end
-
-    -- Toggle, Slider, Input, Keybind APIs stay the same (copy your existing code here)...
-    -- [KEEP YOUR TOGGLE, SLIDER, INPUT, KEYBIND FUNCTIONS AS-IS]
 
     -- Tab switching
     tab.TabButton.MouseButton1Click:Connect(function()
@@ -342,7 +340,6 @@ function MenuLib:Notify(title, text)
 
     -- Tween for fade-in
     notif.Position = notif.Position + UDim2.new(0, 0, 0, 50)
-    notif.Transparency = 1
     TweenService:Create(notif, TweenInfo.new(0.3), {Position = notif.Position - UDim2.new(0, 0, 0, 50)}):Play()
 
     -- Auto destroy
