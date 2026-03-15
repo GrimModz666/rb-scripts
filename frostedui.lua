@@ -48,6 +48,32 @@ loadLabel.TextSize = 36
 loadLabel.TextColor3 = Color3.fromRGB(255,255,255)
 loadLabel.BackgroundTransparency = 1
 
+--=========================
+-- LOADING PROGRESS BAR
+--=========================
+
+local progressBG = Instance.new("Frame")
+progressBG.Parent = loadingScreen
+progressBG.Size = UDim2.new(0,300,0,8)
+progressBG.Position = UDim2.new(0.5,-150,0.48,0)
+progressBG.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Instance.new("UICorner",progressBG)
+
+local progressBar = Instance.new("Frame")
+progressBar.Parent = progressBG
+progressBar.Size = UDim2.new(0,0,1,0)
+progressBar.BackgroundColor3 = Color3.fromRGB(90,140,255)
+Instance.new("UICorner",progressBar)
+
+task.spawn(function()
+	local tween = TweenService:Create(
+		progressBar,
+		TweenInfo.new(2,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+		{Size = UDim2.new(1,0,1,0)}
+	)
+	tween:Play()
+end)
+
 local discordBtn = Instance.new("TextButton")
 discordBtn.Parent = loadingScreen
 discordBtn.Size = UDim2.new(0,200,0,50)
@@ -71,8 +97,7 @@ continueBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 Instance.new("UICorner",continueBtn)
 
 discordBtn.MouseButton1Click:Connect(function()
-	-- replace with your Discord invite
-	print("Join Discord clicked!")
+	setclipboard("https://discord.gg/YuZswmnmAw")
 end)
 
 local loaded = Instance.new("BindableEvent")
@@ -296,7 +321,6 @@ container.BackgroundTransparency = 1
 function Menu:CreateTab(name)
 	local tab = {}
 
-	-- Tab Button
 	local button = Instance.new("TextButton")
 	button.Parent = tabScroll
 	button.Size = UDim2.new(0,120,1,0)
@@ -307,7 +331,6 @@ function Menu:CreateTab(name)
 	button.TextSize = 14
 	Instance.new("UICorner",button)
 
-	-- Tab Frame
 	local frame = Instance.new("ScrollingFrame")
 	frame.Parent = container
 	frame.Size = UDim2.new(1,0,1,0)
@@ -334,9 +357,6 @@ function Menu:CreateTab(name)
 	table.insert(Menu.Tabs,tab)
 	if #Menu.Tabs==1 then frame.Visible=true end
 
-	--=========================
-	-- CREATE BUTTON
-	--=========================
 	function tab:CreateButton(text,callback)
 		local b = Instance.new("TextButton")
 		b.Parent = frame
@@ -350,14 +370,12 @@ function Menu:CreateTab(name)
 		b.MouseButton1Click:Connect(callback)
 	end
 
-	--=========================
-	-- CREATE TOGGLE
-	--=========================
 	function tab:CreateToggle(text,callback)
 		local holder = Instance.new("TextButton")
 		holder.Parent = frame
 		holder.Size = UDim2.new(1,0,0,36)
 		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		holder.Text = ""
 		Instance.new("UICorner",holder)
 
 		local label = Instance.new("TextLabel")
@@ -390,64 +408,6 @@ function Menu:CreateTab(name)
 		end)
 
 		updateToggle()
-	end
-
-	--=========================
-	-- CREATE SLIDER
-	--=========================
-	function tab:CreateSlider(text,min,max,callback)
-		local holder = Instance.new("Frame")
-		holder.Parent = frame
-		holder.Size = UDim2.new(1,0,0,50)
-		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
-		Instance.new("UICorner",holder)
-
-		local label = Instance.new("TextLabel")
-		label.Parent = holder
-		label.Size = UDim2.new(1,-20,0,20)
-		label.Position = UDim2.new(0,10,0,4)
-		label.BackgroundTransparency = 1
-		label.Text = text
-		label.Font = Enum.Font.Gotham
-		label.TextColor3 = Color3.new(1,1,1)
-		label.TextSize = 14
-		label.TextXAlignment = Enum.TextXAlignment.Left
-
-		local bar = Instance.new("Frame")
-		bar.Parent = holder
-		bar.Position = UDim2.new(0,10,1,-18)
-		bar.Size = UDim2.new(1,-20,0,6)
-		bar.BackgroundColor3 = Color3.fromRGB(60,60,60)
-		Instance.new("UICorner",bar)
-
-		local fill = Instance.new("Frame")
-		fill.Parent = bar
-		fill.Size = UDim2.new(0,0,1,0)
-		fill.BackgroundColor3 = Color3.fromRGB(90,140,255)
-		Instance.new("UICorner",fill)
-
-		local dragging=false
-
-		bar.InputBegan:Connect(function(input)
-			if input.UserInputType==Enum.UserInputType.MouseButton1 then
-				dragging=true
-			end
-		end)
-
-		bar.InputEnded:Connect(function(input)
-			if input.UserInputType==Enum.UserInputType.MouseButton1 then
-				dragging=false
-			end
-		end)
-
-		UIS.InputChanged:Connect(function(input)
-			if dragging and input.UserInputType==Enum.UserInputType.MouseMovement then
-				local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
-				fill.Size = UDim2.new(percent,0,1,0)
-				local value = math.floor(min+(max-min)*percent)
-				callback(value)
-			end
-		end)
 	end
 
 	return tab
