@@ -138,42 +138,32 @@ end)
 local open = true
 
 local function toggleMenu()
-
 	open = not open
 	spinBeta()
 
 	if open then
-
 		main.Visible = true
 		main.Size = UDim2.fromScale(.35,0)
-
 		TweenService:Create(
 			main,
 			TweenInfo.new(.35,Enum.EasingStyle.Quint),
 			{Size = UDim2.fromScale(.35,.55)}
 		):Play()
-
 	else
-
 		local close = TweenService:Create(
 			main,
 			TweenInfo.new(.25,Enum.EasingStyle.Quad),
 			{Size = UDim2.fromScale(.35,0)}
 		)
-
 		close:Play()
-
 		close.Completed:Connect(function()
 			main.Visible = false
 		end)
-
 	end
-
 end
 
 UIS.InputBegan:Connect(function(input,gp)
 	if gp then return end
-
 	if input.KeyCode == Enum.KeyCode.RightShift then
 		toggleMenu()
 	end
@@ -196,7 +186,6 @@ layout.Padding = UDim.new(0,8)
 layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 
 function Menu:Notify(title,msg)
-
 	local n = Instance.new("Frame")
 	n.Parent = notifHolder
 	n.Size = UDim2.new(1,0,0,60)
@@ -225,7 +214,6 @@ function Menu:Notify(title,msg)
 	}):Play()
 
 	n.Position = UDim2.new(1,300,0,0)
-
 	TweenService:Create(
 		n,
 		TweenInfo.new(.35,Enum.EasingStyle.Quart),
@@ -235,7 +223,6 @@ function Menu:Notify(title,msg)
 	task.delay(4,function()
 		n:Destroy()
 	end)
-
 end
 
 --=========================
@@ -271,7 +258,6 @@ container.BackgroundTransparency = 1
 --=========================
 
 function Menu:CreateTab(name)
-
 	local tab = {}
 
 	local button = Instance.new("TextButton")
@@ -290,13 +276,11 @@ function Menu:CreateTab(name)
 	frame.BackgroundTransparency = 1
 	frame.Visible = false
 	frame.ScrollBarThickness = 4
-	frame.CanvasSize = UDim2.new(0,0,0,0)
 	frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 	local layout = Instance.new("UIListLayout")
 	layout.Parent = frame
 	layout.Padding = UDim.new(0,8)
-
 	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		frame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
 	end)
@@ -315,12 +299,10 @@ function Menu:CreateTab(name)
 		frame.Visible = true
 	end
 
---=========================
--- BUTTON
---=========================
-
+	--=========================
+	-- BUTTON
+	--=========================
 	function tab:CreateButton(text,callback)
-
 		local b = Instance.new("TextButton")
 		b.Parent = frame
 		b.Size = UDim2.new(1,0,0,36)
@@ -330,17 +312,14 @@ function Menu:CreateTab(name)
 		b.Font = Enum.Font.Gotham
 		b.TextSize = 14
 		Instance.new("UICorner",b)
-
 		b.MouseButton1Click:Connect(callback)
-
 	end
 
---=========================
--- TOGGLE
---=========================
-
+	--=========================
+	-- TOGGLE
+	--=========================
 	function tab:CreateToggle(text,callback)
-		local holder = Instance.new("Frame")
+		local holder = Instance.new("TextButton")
 		holder.Parent = frame
 		holder.Size = UDim2.new(1,0,0,36)
 		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
@@ -348,13 +327,13 @@ function Menu:CreateTab(name)
 
 		local label = Instance.new("TextLabel")
 		label.Parent = holder
+		label.Size = UDim2.new(1,-50,1,0)
+		label.Position = UDim2.new(0,10,0,0)
+		label.BackgroundTransparency = 1
 		label.Text = text
 		label.Font = Enum.Font.Gotham
 		label.TextColor3 = Color3.new(1,1,1)
 		label.TextSize = 14
-		label.Position = UDim2.new(0,10,0,0)
-		label.Size = UDim2.new(1,-40,1,0)
-		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
 
 		local toggleBtn = Instance.new("Frame")
@@ -383,12 +362,10 @@ function Menu:CreateTab(name)
 		updateToggle()
 	end
 
---=========================
--- SLIDER
---=========================
-
+	--=========================
+	-- SLIDER
+	--=========================
 	function tab:CreateSlider(text,min,max,callback)
-
 		local holder = Instance.new("Frame")
 		holder.Parent = frame
 		holder.Size = UDim2.new(1,0,0,50)
@@ -397,13 +374,13 @@ function Menu:CreateTab(name)
 
 		local label = Instance.new("TextLabel")
 		label.Parent = holder
+		label.Size = UDim2.new(1,-20,0,20)
+		label.Position = UDim2.new(0,10,0,4)
+		label.BackgroundTransparency = 1
 		label.Text = text
 		label.Font = Enum.Font.Gotham
 		label.TextColor3 = Color3.new(1,1,1)
 		label.TextSize = 14
-		label.Position = UDim2.new(0,10,0,4)
-		label.Size = UDim2.new(1,-20,0,20)
-		label.BackgroundTransparency = 1
 		label.TextXAlignment = Enum.TextXAlignment.Left
 
 		local bar = Instance.new("Frame")
@@ -435,22 +412,15 @@ function Menu:CreateTab(name)
 
 		UIS.InputChanged:Connect(function(input)
 			if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-				local percent = math.clamp(
-					(input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
-					0,
-					1
-				)
-
+				local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
 				fill.Size = UDim2.new(percent,0,1,0)
-
-				local value = math.floor(min + (max - min) * percent)
+				local value = math.floor(min + (max-min)*percent)
 				callback(value)
 			end
 		end)
-
 	end
 
-return tab
+	return tab
 end
 
 return Menu
