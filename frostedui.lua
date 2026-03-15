@@ -106,7 +106,6 @@ continueBtn.MouseButton1Click:Connect(function()
 	loaded:Fire()
 end)
 
--- wait for continue
 loaded.Event:Wait()
 loadingScreen:Destroy()
 
@@ -260,7 +259,7 @@ function Menu:Notify(title,msg)
 	n.Size = UDim2.new(1,0,0,60)
 	n.BackgroundColor3 = Color3.fromRGB(25,25,25)
 	Instance.new("UICorner",n)
-	
+
 	local label = Instance.new("TextLabel")
 	label.Parent = n
 	label.Size = UDim2.new(1,-20,1,-10)
@@ -271,18 +270,18 @@ function Menu:Notify(title,msg)
 	label.Font = Enum.Font.Gotham
 	label.TextWrapped = true
 	label.TextSize = 14
-	
+
 	local bar = Instance.new("Frame")
 	bar.Parent = n
 	bar.Position = UDim2.new(0,0,1,-4)
 	bar.Size = UDim2.new(1,0,0,4)
 	bar.BackgroundColor3 = Color3.fromRGB(90,140,255)
-	
+
 	TweenService:Create(bar,TweenInfo.new(4),{Size=UDim2.new(0,0,0,4)}):Play()
-	
+
 	n.Position = UDim2.new(1,300,0,0)
 	TweenService:Create(n,TweenInfo.new(.35,Enum.EasingStyle.Quart),{Position=UDim2.new(0,0,0,0)}):Play()
-	
+
 	task.delay(4,function() n:Destroy() end)
 end
 
@@ -342,9 +341,6 @@ function Menu:CreateTab(name)
 	local layout = Instance.new("UIListLayout")
 	layout.Parent = frame
 	layout.Padding = UDim.new(0,8)
-	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		frame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y+10)
-	end)
 
 	button.MouseButton1Click:Connect(function()
 		for _,t in pairs(Menu.Tabs) do
@@ -357,6 +353,7 @@ function Menu:CreateTab(name)
 	table.insert(Menu.Tabs,tab)
 	if #Menu.Tabs==1 then frame.Visible=true end
 
+	-- BUTTON
 	function tab:CreateButton(text,callback)
 		local b = Instance.new("TextButton")
 		b.Parent = frame
@@ -370,7 +367,9 @@ function Menu:CreateTab(name)
 		b.MouseButton1Click:Connect(callback)
 	end
 
+	-- TOGGLE
 	function tab:CreateToggle(text,callback)
+
 		local holder = Instance.new("TextButton")
 		holder.Parent = frame
 		holder.Size = UDim2.new(1,0,0,36)
@@ -408,6 +407,135 @@ function Menu:CreateTab(name)
 		end)
 
 		updateToggle()
+	end
+
+	-- SLIDER
+	function tab:CreateSlider(text,min,max,callback)
+
+		local holder = Instance.new("Frame")
+		holder.Parent = frame
+		holder.Size = UDim2.new(1,0,0,50)
+		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		Instance.new("UICorner",holder)
+
+		local label = Instance.new("TextLabel")
+		label.Parent = holder
+		label.Size = UDim2.new(1,-20,0,20)
+		label.Position = UDim2.new(0,10,0,2)
+		label.BackgroundTransparency = 1
+		label.Text = text.." : "..min
+		label.Font = Enum.Font.Gotham
+		label.TextColor3 = Color3.new(1,1,1)
+		label.TextSize = 14
+		label.TextXAlignment = Enum.TextXAlignment.Left
+
+		local bar = Instance.new("Frame")
+		bar.Parent = holder
+		bar.Position = UDim2.new(0,10,1,-18)
+		bar.Size = UDim2.new(1,-20,0,6)
+		bar.BackgroundColor3 = Color3.fromRGB(60,60,60)
+		Instance.new("UICorner",bar)
+
+		local fill = Instance.new("Frame")
+		fill.Parent = bar
+		fill.Size = UDim2.new(0,0,1,0)
+		fill.BackgroundColor3 = Color3.fromRGB(90,140,255)
+		Instance.new("UICorner",fill)
+
+		local dragging=false
+
+		local function update(x)
+			local pos = math.clamp((x-bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
+			fill.Size = UDim2.new(pos,0,1,0)
+
+			local val = math.floor(min + (max-min)*pos)
+			label.Text = text.." : "..val
+
+			if callback then
+				callback(val)
+			end
+		end
+
+		bar.InputBegan:Connect(function(i)
+			if i.UserInputType==Enum.UserInputType.MouseButton1 then
+				dragging=true
+				update(i.Position.X)
+			end
+		end)
+
+		bar.InputEnded:Connect(function(i)
+			if i.UserInputType==Enum.UserInputType.MouseButton1 then
+				dragging=false
+			end
+		end)
+
+		UIS.InputChanged:Connect(function(i)
+			if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+				update(i.Position.X)
+			end
+		end)
+
+	end
+
+	-- DROPDOWN
+	function tab:CreateDropdown(text,options,callback)
+
+		local holder = Instance.new("Frame")
+		holder.Parent = frame
+		holder.Size = UDim2.new(1,0,0,36)
+		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		Instance.new("UICorner",holder)
+
+		local button = Instance.new("TextButton")
+		button.Parent = holder
+		button.Size = UDim2.new(1,-10,1,0)
+		button.Position = UDim2.new(0,5,0,0)
+		button.Text = text
+		button.BackgroundTransparency = 1
+		button.TextColor3 = Color3.new(1,1,1)
+		button.Font = Enum.Font.Gotham
+		button.TextSize = 14
+
+		local list = Instance.new("Frame")
+		list.Parent = holder
+		list.Position = UDim2.new(0,0,1,0)
+		list.Size = UDim2.new(1,0,0,0)
+		list.BackgroundColor3 = Color3.fromRGB(30,30,30)
+		list.ClipsDescendants=true
+		Instance.new("UICorner",list)
+
+		local layout = Instance.new("UIListLayout")
+		layout.Parent = list
+
+		local open=false
+
+		for _,opt in pairs(options) do
+			local o = Instance.new("TextButton")
+			o.Parent = list
+			o.Size = UDim2.new(1,0,0,30)
+			o.Text = opt
+			o.BackgroundColor3 = Color3.fromRGB(40,40,40)
+			o.TextColor3 = Color3.new(1,1,1)
+			o.Font = Enum.Font.Gotham
+			o.TextSize = 14
+
+			o.MouseButton1Click:Connect(function()
+				button.Text = text..": "..opt
+				callback(opt)
+				open=false
+				list.Size = UDim2.new(1,0,0,0)
+			end)
+		end
+
+		button.MouseButton1Click:Connect(function()
+			open = not open
+			if open then
+				list.Size = UDim2.new(1,0,0,#options*30)
+			else
+				list.Size = UDim2.new(1,0,0,0)
+			end
+		end)
+
 	end
 
 	return tab
