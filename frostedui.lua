@@ -291,6 +291,7 @@ function Menu:CreateTab(name)
 	frame.Visible = false
 	frame.ScrollBarThickness = 4
 	frame.CanvasSize = UDim2.new(0,0,0,0)
+	frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 	local layout = Instance.new("UIListLayout")
 	layout.Parent = frame
@@ -332,6 +333,54 @@ function Menu:CreateTab(name)
 
 		b.MouseButton1Click:Connect(callback)
 
+	end
+
+--=========================
+-- TOGGLE
+--=========================
+
+	function tab:CreateToggle(text,callback)
+		local holder = Instance.new("Frame")
+		holder.Parent = frame
+		holder.Size = UDim2.new(1,0,0,36)
+		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		Instance.new("UICorner",holder)
+
+		local label = Instance.new("TextLabel")
+		label.Parent = holder
+		label.Text = text
+		label.Font = Enum.Font.Gotham
+		label.TextColor3 = Color3.new(1,1,1)
+		label.TextSize = 14
+		label.Position = UDim2.new(0,10,0,0)
+		label.Size = UDim2.new(1,-40,1,0)
+		label.BackgroundTransparency = 1
+		label.TextXAlignment = Enum.TextXAlignment.Left
+
+		local toggleBtn = Instance.new("Frame")
+		toggleBtn.Parent = holder
+		toggleBtn.Size = UDim2.new(0,24,0,24)
+		toggleBtn.Position = UDim2.new(1,-34,0,6)
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+		Instance.new("UICorner",toggleBtn)
+
+		local active = false
+
+		local function updateToggle()
+			if active then
+				toggleBtn.BackgroundColor3 = Color3.fromRGB(90,140,255)
+			else
+				toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+			end
+		end
+
+		holder.MouseButton1Click:Connect(function()
+			active = not active
+			updateToggle()
+			callback(active)
+		end)
+
+		updateToggle()
 	end
 
 --=========================
@@ -386,7 +435,6 @@ function Menu:CreateTab(name)
 
 		UIS.InputChanged:Connect(function(input)
 			if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-
 				local percent = math.clamp(
 					(input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
 					0,
@@ -397,7 +445,6 @@ function Menu:CreateTab(name)
 
 				local value = math.floor(min + (max - min) * percent)
 				callback(value)
-
 			end
 		end)
 
