@@ -1,6 +1,6 @@
 --// =========================
 -- Frosted UI Library vBeta
--- Fully Fixed Build
+-- Improved Version
 -- =========================
 
 local Players = game:GetService("Players")
@@ -25,18 +25,18 @@ end
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "FrostedUI"
-gui.ResetOnSpawn = false
 gui.Parent = playerGui
+gui.ResetOnSpawn = false
 
 --=========================
--- LIB TABLE
+-- LIBRARY
 --=========================
 
 local Menu = {}
 Menu.Tabs = {}
 
 --=========================
--- MAIN FRAME
+-- MAIN WINDOW
 --=========================
 
 local main = Instance.new("Frame")
@@ -45,6 +45,8 @@ main.Size = UDim2.fromScale(.35,.55)
 main.Position = UDim2.fromScale(.33,.25)
 main.BackgroundColor3 = Color3.fromRGB(18,18,18)
 main.BorderSizePixel = 0
+main.ClipsDescendants = true
+
 Instance.new("UICorner",main).CornerRadius = UDim.new(0,16)
 
 local stroke = Instance.new("UIStroke")
@@ -68,13 +70,9 @@ title.Position = UDim2.new(0,15,0,0)
 title.BackgroundTransparency = 1
 title.Text = "Frosted UI vBeta"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 24
+title.TextSize = 22
 title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
-
-function Menu:SetTitle(text)
-	title.Text = text
-end
 
 --=========================
 -- BETA BADGE
@@ -82,29 +80,28 @@ end
 
 local beta = Instance.new("TextLabel")
 beta.Parent = header
-beta.Size = UDim2.new(0,60,0,26)
-beta.Position = UDim2.new(1,-70,.5,-13)
+beta.Size = UDim2.new(0,60,0,24)
+beta.Position = UDim2.new(1,-70,.5,-12)
 beta.BackgroundColor3 = Color3.fromRGB(90,140,255)
 beta.Text = "BETA"
 beta.TextColor3 = Color3.new(1,1,1)
 beta.Font = Enum.Font.GothamBold
 beta.TextSize = 12
+
 Instance.new("UICorner",beta)
 
 local function spinBeta()
 
-	local tween = TweenService:Create(
+	TweenService:Create(
 		beta,
-		TweenInfo.new(.35,Enum.EasingStyle.Quad),
+		TweenInfo.new(.4,Enum.EasingStyle.Quart),
 		{Rotation = beta.Rotation + 360}
-	)
-
-	tween:Play()
+	):Play()
 
 end
 
 --=========================
--- DRAGGING (FIXED)
+-- DRAGGING
 --=========================
 
 local dragging = false
@@ -147,55 +144,119 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 --=========================
--- RIGHT SHIFT TOGGLE
+-- OPEN CLOSE ANIMATION
 --=========================
 
 local open = true
+
+local function toggleMenu()
+
+	open = not open
+	spinBeta()
+
+	if open then
+
+		main.Visible = true
+		main.Size = UDim2.fromScale(.35,0)
+
+		TweenService:Create(
+			main,
+			TweenInfo.new(.35,Enum.EasingStyle.Quint),
+			{Size = UDim2.fromScale(.35,.55)}
+		):Play()
+
+	else
+
+		local close = TweenService:Create(
+			main,
+			TweenInfo.new(.25,Enum.EasingStyle.Quad),
+			{Size = UDim2.fromScale(.35,0)}
+		)
+
+		close:Play()
+
+		close.Completed:Connect(function()
+			main.Visible = false
+		end)
+
+	end
+
+end
 
 UIS.InputBegan:Connect(function(input,gp)
 
 	if gp then return end
 
 	if input.KeyCode == Enum.KeyCode.RightShift then
-
-		open = not open
-
-		spinBeta()
-
-		if open then
-
-			main.Visible = true
-
-			main.Size = UDim2.fromScale(.35,0)
-
-			TweenService:Create(
-				main,
-				TweenInfo.new(.25,Enum.EasingStyle.Back),
-				{Size = UDim2.fromScale(.35,.55)}
-			):Play()
-
-		else
-
-			local close = TweenService:Create(
-				main,
-				TweenInfo.new(.2),
-				{Size = UDim2.fromScale(.35,0)}
-			)
-
-			close:Play()
-
-			close.Completed:Connect(function()
-				main.Visible = false
-			end)
-
-		end
-
+		toggleMenu()
 	end
 
 end)
 
 --=========================
--- TAB BAR
+-- NOTIFICATION SYSTEM
+--=========================
+
+local notifHolder = Instance.new("Frame")
+notifHolder.Parent = gui
+notifHolder.AnchorPoint = Vector2.new(1,1)
+notifHolder.Position = UDim2.new(1,-20,1,-20)
+notifHolder.Size = UDim2.new(0,300,0,200)
+notifHolder.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout")
+layout.Parent = notifHolder
+layout.Padding = UDim.new(0,8)
+layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+
+function Menu:Notify(title,msg)
+
+	local n = Instance.new("Frame")
+	n.Parent = notifHolder
+	n.Size = UDim2.new(1,0,0,60)
+	n.BackgroundColor3 = Color3.fromRGB(25,25,25)
+
+	Instance.new("UICorner",n)
+
+	local label = Instance.new("TextLabel")
+	label.Parent = n
+	label.Size = UDim2.new(1,-20,1,-10)
+	label.Position = UDim2.new(0,10,0,5)
+	label.BackgroundTransparency = 1
+	label.Text = title.." - "..msg
+	label.TextColor3 = Color3.new(1,1,1)
+	label.TextWrapped = true
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 14
+
+	local bar = Instance.new("Frame")
+	bar.Parent = n
+	bar.Position = UDim2.new(0,0,1,-4)
+	bar.Size = UDim2.new(1,0,0,4)
+	bar.BackgroundColor3 = Color3.fromRGB(90,140,255)
+
+	TweenService:Create(
+		bar,
+		TweenInfo.new(4),
+		{Size = UDim2.new(0,0,0,4)}
+	):Play()
+
+	n.Position = UDim2.new(1,300,0,0)
+
+	TweenService:Create(
+		n,
+		TweenInfo.new(.35,Enum.EasingStyle.Quart),
+		{Position = UDim2.new(0,0,0,0)}
+	):Play()
+
+	task.delay(4,function()
+		n:Destroy()
+	end)
+
+end
+
+--=========================
+-- TAB SYSTEM
 --=========================
 
 local tabBar = Instance.new("Frame")
@@ -209,19 +270,11 @@ tabLayout.Parent = tabBar
 tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.Padding = UDim.new(0,10)
 
---=========================
--- TAB CONTENT
---=========================
-
 local container = Instance.new("Frame")
 container.Parent = main
 container.Size = UDim2.new(1,-20,1,-120)
 container.Position = UDim2.new(0,10,0,110)
 container.BackgroundTransparency = 1
-
---=========================
--- CREATE TAB
---=========================
 
 function Menu:CreateTab(name)
 
@@ -265,105 +318,10 @@ function Menu:CreateTab(name)
 	end
 
 --=========================
--- BUTTON
+-- TOGGLE SWITCH
 --=========================
 
-	function tab:CreateButton(text,callback)
-
-		local btn = Instance.new("TextButton")
-		btn.Parent = frame
-		btn.Size = UDim2.new(1,0,0,36)
-		btn.Text = text
-		btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-		btn.TextColor3 = Color3.new(1,1,1)
-		btn.Font = Enum.Font.Gotham
-		btn.TextSize = 14
-		Instance.new("UICorner",btn)
-
-		btn.MouseButton1Click:Connect(callback)
-
-	end
-
---=========================
--- SLIDER (FIXED)
---=========================
-
-	function tab:CreateSlider(text,min,max,callback)
-
-		local holder = Instance.new("Frame")
-		holder.Parent = frame
-		holder.Size = UDim2.new(1,0,0,50)
-		holder.BackgroundTransparency = 1
-
-		local label = Instance.new("TextLabel")
-		label.Parent = holder
-		label.Size = UDim2.new(1,0,0,20)
-		label.Text = text.." : "..min
-		label.TextColor3 = Color3.new(1,1,1)
-		label.BackgroundTransparency = 1
-		label.Font = Enum.Font.Gotham
-		label.TextSize = 14
-
-		local bar = Instance.new("Frame")
-		bar.Parent = holder
-		bar.Size = UDim2.new(1,0,0,10)
-		bar.Position = UDim2.new(0,0,0,30)
-		bar.BackgroundColor3 = Color3.fromRGB(50,50,50)
-		Instance.new("UICorner",bar)
-
-		local fill = Instance.new("Frame")
-		fill.Parent = bar
-		fill.Size = UDim2.new(0,0,1,0)
-		fill.BackgroundColor3 = Color3.fromRGB(90,140,255)
-		Instance.new("UICorner",fill)
-
-		local draggingSlider = false
-
-		bar.InputBegan:Connect(function(input)
-
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				draggingSlider = true
-			end
-
-		end)
-
-		UIS.InputEnded:Connect(function(input)
-
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				draggingSlider = false
-			end
-
-		end)
-
-		UIS.InputChanged:Connect(function(input)
-
-			if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
-
-				local pos = math.clamp(
-					(input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
-					0,
-					1
-				)
-
-				fill.Size = UDim2.new(pos,0,1,0)
-
-				local value = math.floor(min + (max-min)*pos)
-
-				label.Text = text.." : "..value
-
-				callback(value)
-
-			end
-
-		end)
-
-	end
-
---=========================
--- DROPDOWN (ANIMATED)
---=========================
-
-	function tab:CreateDropdown(text,options,callback)
+	function tab:CreateToggle(text,callback)
 
 		local holder = Instance.new("Frame")
 		holder.Parent = frame
@@ -371,67 +329,66 @@ function Menu:CreateTab(name)
 		holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
 		Instance.new("UICorner",holder)
 
-		local button = Instance.new("TextButton")
-		button.Parent = holder
-		button.Size = UDim2.new(1,0,1,0)
-		button.Text = text
-		button.TextColor3 = Color3.new(1,1,1)
-		button.BackgroundTransparency = 1
-		button.Font = Enum.Font.Gotham
-		button.TextSize = 14
+		local label = Instance.new("TextLabel")
+		label.Parent = holder
+		label.Size = UDim2.new(.7,0,1,0)
+		label.Position = UDim2.new(0,10,0,0)
+		label.BackgroundTransparency = 1
+		label.Text = text
+		label.TextColor3 = Color3.new(1,1,1)
+		label.Font = Enum.Font.Gotham
+		label.TextSize = 14
+		label.TextXAlignment = Enum.TextXAlignment.Left
 
-		local list = Instance.new("Frame")
-		list.Parent = holder
-		list.Position = UDim2.new(0,0,1,0)
-		list.Size = UDim2.new(1,0,0,0)
-		list.BackgroundColor3 = Color3.fromRGB(30,30,30)
-		list.ClipsDescendants = true
-		Instance.new("UICorner",list)
+		local toggle = Instance.new("Frame")
+		toggle.Parent = holder
+		toggle.Size = UDim2.new(0,40,0,18)
+		toggle.Position = UDim2.new(1,-50,.5,-9)
+		toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+		Instance.new("UICorner",toggle)
 
-		local layout = Instance.new("UIListLayout")
-		layout.Parent = list
+		local circle = Instance.new("Frame")
+		circle.Parent = toggle
+		circle.Size = UDim2.new(0,16,0,16)
+		circle.Position = UDim2.new(0,1,0,1)
+		circle.BackgroundColor3 = Color3.new(1,1,1)
+		Instance.new("UICorner",circle)
 
-		local open = false
+		local state = false
 
-		button.MouseButton1Click:Connect(function()
+		holder.InputBegan:Connect(function(input)
 
-			open = not open
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 
-			local size = open and (#options*30) or 0
+				state = not state
 
-			TweenService:Create(
-				list,
-				TweenInfo.new(.25),
-				{Size = UDim2.new(1,0,0,size)}
-			):Play()
+				if state then
+
+					TweenService:Create(circle,TweenInfo.new(.2),{
+						Position = UDim2.new(1,-17,0,1)
+					}):Play()
+
+					toggle.BackgroundColor3 = Color3.fromRGB(90,140,255)
+
+				else
+
+					TweenService:Create(circle,TweenInfo.new(.2),{
+						Position = UDim2.new(0,1,0,1)
+					}):Play()
+
+					toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+
+				end
+
+				callback(state)
+
+			end
 
 		end)
 
-		for _,v in pairs(options) do
-
-			local opt = Instance.new("TextButton")
-			opt.Parent = list
-			opt.Size = UDim2.new(1,0,0,30)
-			opt.Text = v
-			opt.BackgroundTransparency = 1
-			opt.TextColor3 = Color3.new(1,1,1)
-			opt.Font = Enum.Font.Gotham
-			opt.TextSize = 13
-
-			opt.MouseButton1Click:Connect(function()
-
-				button.Text = text.." : "..v
-
-				callback(v)
-
-			end)
-
-		end
-
 	end
 
-	return tab
-
+return tab
 end
 
 return Menu
