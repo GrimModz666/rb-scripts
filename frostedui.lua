@@ -1,6 +1,6 @@
 --// =========================
--- Frosted UI Library v3
--- With Loader + Animations
+-- Frosted UI Library v3.1
+-- Fixed Version
 -- =========================
 
 local Players = game:GetService("Players")
@@ -8,35 +8,29 @@ local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
 --=========================
--- Prevent double injection
+-- DOUBLE INJECTION FIX
 --=========================
 
-if player.PlayerGui:FindFirstChild("FrostedUI") then
-	player.PlayerGui.FrostedUI:Destroy()
+local existing = playerGui:FindFirstChild("FrostedUI")
+
+if existing then
+	existing:Destroy()
 end
 
 --=========================
--- Library Table
---=========================
-
-local MenuLib = {}
-MenuLib.Tabs = {}
-MenuLib.ActiveTab = nil
-MenuLib.Open = true
-
---=========================
--- ScreenGui
+-- GUI
 --=========================
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "FrostedUI"
-gui.Parent = player.PlayerGui
 gui.ResetOnSpawn = false
+gui.Parent = playerGui
 
 --=========================
--- Loading Screen
+-- LOADING SCREEN
 --=========================
 
 local loader = Instance.new("Frame")
@@ -44,15 +38,15 @@ loader.Parent = gui
 loader.Size = UDim2.fromScale(1,1)
 loader.BackgroundColor3 = Color3.fromRGB(15,15,15)
 
-local loadText = Instance.new("TextLabel")
-loadText.Parent = loader
-loadText.Size = UDim2.new(1,0,0,40)
-loadText.Position = UDim2.new(.5,-100,.5,-20)
-loadText.BackgroundTransparency = 1
-loadText.Text = "Loading Frosted UI..."
-loadText.Font = Enum.Font.GothamBold
-loadText.TextSize = 22
-loadText.TextColor3 = Color3.new(1,1,1)
+local loadingText = Instance.new("TextLabel")
+loadingText.Parent = loader
+loadingText.Size = UDim2.new(1,0,0,40)
+loadingText.Position = UDim2.new(.5,-100,.5,-20)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "Loading Frosted..."
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextSize = 24
+loadingText.TextColor3 = Color3.new(1,1,1)
 
 local spinner = Instance.new("Frame")
 spinner.Parent = loader
@@ -64,7 +58,7 @@ Instance.new("UICorner",spinner).CornerRadius = UDim.new(1,0)
 
 task.spawn(function()
 	while loader.Parent do
-		spinner.Rotation += 5
+		spinner.Rotation += 6
 		task.wait()
 	end
 end)
@@ -73,7 +67,15 @@ task.wait(1.2)
 loader:Destroy()
 
 --=========================
--- Main Menu
+-- LIBRARY TABLE
+--=========================
+
+local MenuLib = {}
+MenuLib.Tabs = {}
+MenuLib.Open = true
+
+--=========================
+-- MAIN FRAME
 --=========================
 
 local mainFrame = Instance.new("Frame")
@@ -82,14 +84,16 @@ mainFrame.Size = UDim2.fromScale(.35,.55)
 mainFrame.Position = UDim2.fromScale(.325,.25)
 mainFrame.BackgroundColor3 = Color3.fromRGB(22,22,22)
 mainFrame.BorderSizePixel = 0
+
 Instance.new("UICorner",mainFrame).CornerRadius = UDim.new(0,16)
 
-local stroke = Instance.new("UIStroke",mainFrame)
+local stroke = Instance.new("UIStroke")
+stroke.Parent = mainFrame
 stroke.Color = Color3.fromRGB(100,160,255)
 stroke.Thickness = 1.5
 
 --=========================
--- Header (drag area)
+-- HEADER
 --=========================
 
 local header = Instance.new("Frame")
@@ -128,12 +132,11 @@ betaTag.TextColor3 = Color3.new(1,1,1)
 betaTag.BorderSizePixel = 0
 Instance.new("UICorner",betaTag).CornerRadius = UDim.new(0,8)
 
--- spin animation
 local function spinBeta()
 
 	local tween = TweenService:Create(
 		betaTag,
-		TweenInfo.new(.4,Enum.EasingStyle.Quad),
+		TweenInfo.new(.35,Enum.EasingStyle.Quad),
 		{Rotation = betaTag.Rotation + 360}
 	)
 
@@ -142,7 +145,7 @@ local function spinBeta()
 end
 
 --=========================
--- Drag System
+-- DRAGGING
 --=========================
 
 local dragging = false
@@ -152,11 +155,9 @@ local startPos
 header.InputBegan:Connect(function(input)
 
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-
 		dragging = true
 		dragStart = input.Position
 		startPos = mainFrame.Position
-
 	end
 
 end)
@@ -187,7 +188,7 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 --=========================
--- Toggle Menu (RightShift)
+-- RIGHT SHIFT TOGGLE
 --=========================
 
 local function toggleMenu()
@@ -196,25 +197,33 @@ local function toggleMenu()
 
 	spinBeta()
 
-	local goal = {}
-
 	if MenuLib.Open then
-		goal.Size = UDim2.fromScale(.35,.55)
-	else
-		goal.Size = UDim2.fromScale(0,0)
-	end
 
-	TweenService:Create(
-		mainFrame,
-		TweenInfo.new(.25,Enum.EasingStyle.Quad),
-		goal
-	):Play()
+		mainFrame.Visible = true
+
+		mainFrame.Size = UDim2.fromScale(.35,.55)
+
+	else
+
+		local closeTween = TweenService:Create(
+			mainFrame,
+			TweenInfo.new(.2),
+			{Size = UDim2.fromScale(.35,0)}
+		)
+
+		closeTween:Play()
+
+		closeTween.Completed:Connect(function()
+			mainFrame.Visible = false
+		end)
+
+	end
 
 end
 
-UIS.InputBegan:Connect(function(input,gameProcessed)
+UIS.InputBegan:Connect(function(input,gp)
 
-	if gameProcessed then return end
+	if gp then return end
 
 	if input.KeyCode == Enum.KeyCode.RightShift then
 		toggleMenu()
@@ -223,7 +232,7 @@ UIS.InputBegan:Connect(function(input,gameProcessed)
 end)
 
 --=========================
--- Tabs System
+-- TAB SYSTEM
 --=========================
 
 local tabButtonsFrame = Instance.new("Frame")
@@ -232,7 +241,8 @@ tabButtonsFrame.Size = UDim2.new(1,-20,0,40)
 tabButtonsFrame.Position = UDim2.new(0,10,0,50)
 tabButtonsFrame.BackgroundTransparency = 1
 
-local tabLayout = Instance.new("UIListLayout",tabButtonsFrame)
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.Parent = tabButtonsFrame
 tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.Padding = UDim.new(0,10)
 
@@ -243,7 +253,7 @@ tabContainer.Position = UDim2.new(0,10,0,90)
 tabContainer.BackgroundTransparency = 1
 
 --=========================
--- Tab Creation
+-- CREATE TAB
 --=========================
 
 function MenuLib:CreateTab(name)
@@ -261,20 +271,15 @@ function MenuLib:CreateTab(name)
 	button.BorderSizePixel = 0
 	Instance.new("UICorner",button).CornerRadius = UDim.new(0,6)
 
-	local scroll = Instance.new("ScrollingFrame")
-	scroll.Parent = tabContainer
-	scroll.Size = UDim2.new(1,0,1,0)
-	scroll.CanvasSize = UDim2.new(0,0,0,0)
-	scroll.ScrollBarThickness = 4
-	scroll.BackgroundTransparency = 1
-	scroll.Visible = false
+	local content = Instance.new("Frame")
+	content.Parent = tabContainer
+	content.Size = UDim2.new(1,0,1,0)
+	content.BackgroundTransparency = 1
+	content.Visible = false
 
-	local layout = Instance.new("UIListLayout",scroll)
+	local layout = Instance.new("UIListLayout")
+	layout.Parent = content
 	layout.Padding = UDim.new(0,8)
-
-	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
-	end)
 
 	local function activate()
 
@@ -282,164 +287,18 @@ function MenuLib:CreateTab(name)
 			t.Content.Visible = false
 		end
 
-		scroll.Visible = true
+		content.Visible = true
+
 	end
 
 	button.MouseButton1Click:Connect(activate)
 
-	tab.Content = scroll
-
+	tab.Content = content
 	table.insert(MenuLib.Tabs,tab)
 
 	if #MenuLib.Tabs == 1 then
 		activate()
 	end
-
---=========================
--- Button
---=========================
-
-function tab:CreateButton(text,callback)
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = scroll
-	btn.Size = UDim2.new(1,0,0,40)
-	btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-	btn.Text = text
-	btn.Font = Enum.Font.GothamSemibold
-	btn.TextSize = 16
-	btn.TextColor3 = Color3.fromRGB(240,240,240)
-	btn.BorderSizePixel = 0
-	Instance.new("UICorner",btn).CornerRadius = UDim.new(0,10)
-
-	btn.MouseButton1Click:Connect(callback)
-
-end
-
---=========================
--- Toggle
---=========================
-
-function tab:CreateToggle(text,callback)
-
-	local frame = Instance.new("Frame")
-	frame.Parent = scroll
-	frame.Size = UDim2.new(1,0,0,40)
-	frame.BackgroundTransparency = 1
-
-	local label = Instance.new("TextLabel")
-	label.Parent = frame
-	label.Size = UDim2.new(.7,0,1,0)
-	label.BackgroundTransparency = 1
-	label.Text = text
-	label.Font = Enum.Font.Gotham
-	label.TextSize = 16
-	label.TextColor3 = Color3.fromRGB(240,240,240)
-	label.TextXAlignment = Enum.TextXAlignment.Left
-
-	local toggle = Instance.new("TextButton")
-	toggle.Parent = frame
-	toggle.Size = UDim2.new(0,40,0,20)
-	toggle.Position = UDim2.new(1,-50,.5,-10)
-	toggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
-	toggle.Text = ""
-	toggle.BorderSizePixel = 0
-	Instance.new("UICorner",toggle).CornerRadius = UDim.new(0,6)
-
-	local state = false
-
-	toggle.MouseButton1Click:Connect(function()
-
-		state = not state
-
-		toggle.BackgroundColor3 =
-			state and Color3.fromRGB(90,140,255)
-			or Color3.fromRGB(60,60,60)
-
-		callback(state)
-
-	end)
-
-end
-
---=========================
--- Slider
---=========================
-
-function tab:CreateSlider(text,min,max,callback)
-
-	local frame = Instance.new("Frame")
-	frame.Parent = scroll
-	frame.Size = UDim2.new(1,0,0,50)
-	frame.BackgroundTransparency = 1
-
-	local label = Instance.new("TextLabel")
-	label.Parent = frame
-	label.Size = UDim2.new(1,0,0,20)
-	label.BackgroundTransparency = 1
-	label.Text = text.." ["..min.."]"
-	label.Font = Enum.Font.Gotham
-	label.TextSize = 14
-	label.TextColor3 = Color3.fromRGB(240,240,240)
-	label.TextXAlignment = Enum.TextXAlignment.Left
-
-	local bar = Instance.new("Frame")
-	bar.Parent = frame
-	bar.Size = UDim2.new(1,0,0,8)
-	bar.Position = UDim2.new(0,0,0,30)
-	bar.BackgroundColor3 = Color3.fromRGB(60,60,60)
-	bar.BorderSizePixel = 0
-	Instance.new("UICorner",bar)
-
-	local fill = Instance.new("Frame")
-	fill.Parent = bar
-	fill.Size = UDim2.new(0,0,1,0)
-	fill.BackgroundColor3 = Color3.fromRGB(90,140,255)
-	fill.BorderSizePixel = 0
-	Instance.new("UICorner",fill)
-
-	local draggingSlider = false
-
-	bar.InputBegan:Connect(function(input)
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			draggingSlider = true
-		end
-
-	end)
-
-	bar.InputEnded:Connect(function(input)
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			draggingSlider = false
-		end
-
-	end)
-
-	UIS.InputChanged:Connect(function(input)
-
-		if draggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
-
-			local percent =
-				math.clamp(
-					(input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
-					0,
-					1
-				)
-
-			fill.Size = UDim2.new(percent,0,1,0)
-
-			local value = math.floor(min + (max-min)*percent)
-
-			label.Text = text.." ["..value.."]"
-
-			callback(value)
-
-		end
-
-	end)
-
-end
 
 return tab
 
