@@ -80,17 +80,23 @@ tabContainer.Size = UDim2.new(1, -20, 1, -120)
 tabContainer.Position = UDim2.new(0,10,0,100)
 tabContainer.BackgroundTransparency = 1
 
--- Draggable function (ignores sliders and interactive elements)
+--==========================
+-- Draggable function (ignores interactive elements)
+--==========================
 local function makeDraggable(frame)
     local dragging = false
     local dragStart, startPos
 
     frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            -- Only start drag if mouse is NOT over an interactive element
-            local target = UIS:GetFocusedTextBox()
+            -- Only start drag if mouse is NOT over interactive element
             local mouseTarget = input.Target
-            if mouseTarget and (mouseTarget:IsA("TextBox") or mouseTarget:IsA("TextButton") or mouseTarget:IsA("Frame") and mouseTarget:FindFirstChild("UICorner")) then
+            if mouseTarget and (
+                mouseTarget:IsA("TextBox") or 
+                mouseTarget:IsA("TextButton") or 
+                mouseTarget:IsA("TextLabel") or 
+                mouseTarget:IsA("Frame") and mouseTarget:FindFirstChild("UICorner")
+            ) then
                 return
             end
 
@@ -120,7 +126,6 @@ local function makeDraggable(frame)
 end
 
 makeDraggable(mainFrame)
-makeDraggable(betaTag)
 
 --==========================
 -- Menu API (Tabs, Buttons, Toggles, Sliders, Inputs, Dropdowns, Keybinds)
@@ -274,5 +279,3 @@ function MenuLib:CreateTab(name)
 
     return tab
 end
-
-return MenuLib
