@@ -1,6 +1,6 @@
 --// =========================
--- Frosted UI Library v3.1
--- Fixed Version
+-- Frosted UI Library v3.2
+-- Professional Loader Edition
 -- =========================
 
 local Players = game:GetService("Players")
@@ -15,7 +15,6 @@ local playerGui = player:WaitForChild("PlayerGui")
 --=========================
 
 local existing = playerGui:FindFirstChild("FrostedUI")
-
 if existing then
 	existing:Destroy()
 end
@@ -30,7 +29,7 @@ gui.ResetOnSpawn = false
 gui.Parent = playerGui
 
 --=========================
--- LOADING SCREEN
+-- LOADER SCREEN
 --=========================
 
 local loader = Instance.new("Frame")
@@ -41,17 +40,21 @@ loader.BackgroundColor3 = Color3.fromRGB(15,15,15)
 local loadingText = Instance.new("TextLabel")
 loadingText.Parent = loader
 loadingText.Size = UDim2.new(1,0,0,40)
-loadingText.Position = UDim2.new(.5,-100,.5,-20)
+loadingText.Position = UDim2.new(.5,-150,.45,-20)
 loadingText.BackgroundTransparency = 1
-loadingText.Text = "Loading Frosted..."
+loadingText.Text = "Loading Frosted UI..."
 loadingText.Font = Enum.Font.GothamBold
-loadingText.TextSize = 24
+loadingText.TextSize = 28
 loadingText.TextColor3 = Color3.new(1,1,1)
+
+--=========================
+-- SPINNER
+--=========================
 
 local spinner = Instance.new("Frame")
 spinner.Parent = loader
 spinner.Size = UDim2.new(0,40,0,40)
-spinner.Position = UDim2.new(.5,-20,.5,20)
+spinner.Position = UDim2.new(.5,-20,.45,40)
 spinner.BackgroundColor3 = Color3.fromRGB(90,140,255)
 spinner.BorderSizePixel = 0
 Instance.new("UICorner",spinner).CornerRadius = UDim.new(1,0)
@@ -63,8 +66,71 @@ task.spawn(function()
 	end
 end)
 
-task.wait(1.2)
-loader:Destroy()
+--=========================
+-- LOADING BAR
+--=========================
+
+local barBG = Instance.new("Frame")
+barBG.Parent = loader
+barBG.Size = UDim2.new(0,350,0,10)
+barBG.Position = UDim2.new(.5,-175,.55,0)
+barBG.BackgroundColor3 = Color3.fromRGB(40,40,40)
+barBG.BorderSizePixel = 0
+Instance.new("UICorner",barBG)
+
+local barFill = Instance.new("Frame")
+barFill.Parent = barBG
+barFill.Size = UDim2.new(0,0,1,0)
+barFill.BackgroundColor3 = Color3.fromRGB(90,140,255)
+barFill.BorderSizePixel = 0
+Instance.new("UICorner",barFill)
+
+TweenService:Create(
+	barFill,
+	TweenInfo.new(2,Enum.EasingStyle.Quad),
+	{Size = UDim2.new(1,0,1,0)}
+):Play()
+
+task.wait(2)
+
+--=========================
+-- BUTTONS AFTER LOAD
+--=========================
+
+local discordButton = Instance.new("TextButton")
+discordButton.Parent = loader
+discordButton.Size = UDim2.new(0,180,0,40)
+discordButton.Position = UDim2.new(.5,-200,.65,0)
+discordButton.Text = "Join Discord"
+discordButton.Font = Enum.Font.GothamBold
+discordButton.TextSize = 16
+discordButton.BackgroundColor3 = Color3.fromRGB(90,140,255)
+discordButton.TextColor3 = Color3.new(1,1,1)
+discordButton.BorderSizePixel = 0
+Instance.new("UICorner",discordButton)
+
+local continueButton = Instance.new("TextButton")
+continueButton.Parent = loader
+continueButton.Size = UDim2.new(0,180,0,40)
+continueButton.Position = UDim2.new(.5,20,.65,0)
+continueButton.Text = "Continue"
+continueButton.Font = Enum.Font.GothamBold
+continueButton.TextSize = 16
+continueButton.BackgroundColor3 = Color3.fromRGB(60,60,60)
+continueButton.TextColor3 = Color3.new(1,1,1)
+continueButton.BorderSizePixel = 0
+Instance.new("UICorner",continueButton)
+
+discordButton.MouseButton1Click:Connect(function()
+	setclipboard("https://discord.gg/yourserver")
+end)
+
+continueButton.MouseButton1Click:Connect(function()
+	loader:Destroy()
+end)
+
+-- Wait until continue pressed
+repeat task.wait() until not loader.Parent
 
 --=========================
 -- LIBRARY TABLE
@@ -130,18 +196,15 @@ betaTag.Font = Enum.Font.GothamBold
 betaTag.TextSize = 12
 betaTag.TextColor3 = Color3.new(1,1,1)
 betaTag.BorderSizePixel = 0
-Instance.new("UICorner",betaTag).CornerRadius = UDim.new(0,8)
+Instance.new("UICorner",betaTag)
 
 local function spinBeta()
-
 	local tween = TweenService:Create(
 		betaTag,
 		TweenInfo.new(.35,Enum.EasingStyle.Quad),
 		{Rotation = betaTag.Rotation + 360}
 	)
-
 	tween:Play()
-
 end
 
 --=========================
@@ -153,27 +216,21 @@ local dragStart
 local startPos
 
 header.InputBegan:Connect(function(input)
-
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = true
 		dragStart = input.Position
 		startPos = mainFrame.Position
 	end
-
 end)
 
 header.InputEnded:Connect(function(input)
-
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
-
 end)
 
 UIS.InputChanged:Connect(function(input)
-
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-
 		local delta = input.Position - dragStart
 
 		mainFrame.Position = UDim2.new(
@@ -182,9 +239,7 @@ UIS.InputChanged:Connect(function(input)
 			startPos.Y.Scale,
 			startPos.Y.Offset + delta.Y
 		)
-
 	end
-
 end)
 
 --=========================
@@ -194,13 +249,11 @@ end)
 local function toggleMenu()
 
 	MenuLib.Open = not MenuLib.Open
-
 	spinBeta()
 
 	if MenuLib.Open then
 
 		mainFrame.Visible = true
-
 		mainFrame.Size = UDim2.fromScale(.35,.55)
 
 	else
@@ -218,7 +271,6 @@ local function toggleMenu()
 		end)
 
 	end
-
 end
 
 UIS.InputBegan:Connect(function(input,gp)
@@ -269,7 +321,7 @@ function MenuLib:CreateTab(name)
 	button.TextSize = 14
 	button.TextColor3 = Color3.fromRGB(240,240,240)
 	button.BorderSizePixel = 0
-	Instance.new("UICorner",button).CornerRadius = UDim.new(0,6)
+	Instance.new("UICorner",button)
 
 	local content = Instance.new("Frame")
 	content.Parent = tabContainer
@@ -282,13 +334,10 @@ function MenuLib:CreateTab(name)
 	layout.Padding = UDim.new(0,8)
 
 	local function activate()
-
 		for _,t in pairs(MenuLib.Tabs) do
 			t.Content.Visible = false
 		end
-
 		content.Visible = true
-
 	end
 
 	button.MouseButton1Click:Connect(activate)
@@ -300,8 +349,7 @@ function MenuLib:CreateTab(name)
 		activate()
 	end
 
-return tab
-
+	return tab
 end
 
 return MenuLib
