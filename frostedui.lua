@@ -17,80 +17,6 @@ gui.Parent = player:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
 
 --==========================
--- Loading & Credits Screen
---==========================
-local loadingFrame = Instance.new("Frame")
-loadingFrame.Size = UDim2.new(0, 400, 0, 200)
-loadingFrame.Position = UDim2.new(0.5, -200, 0.5, -100)
-loadingFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-loadingFrame.BorderSizePixel = 0
-Instance.new("UICorner", loadingFrame).CornerRadius = UDim.new(0,15)
-loadingFrame.Parent = gui
-
-local loadingText = Instance.new("TextLabel")
-loadingText.Size = UDim2.new(1, -20, 0, 50)
-loadingText.Position = UDim2.new(0,10,0,20)
-loadingText.BackgroundTransparency = 1
-loadingText.Text = "Loading Menu..."
-loadingText.TextColor3 = Color3.fromRGB(240,240,240)
-loadingText.TextSize = 20
-loadingText.Font = Enum.Font.GothamBold
-loadingText.Parent = loadingFrame
-
--- Progress bar
-local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0,0,0,20)
-progressBar.Position = UDim2.new(0,10,0,90)
-progressBar.BackgroundColor3 = Color3.fromRGB(90,140,255)
-progressBar.BorderSizePixel = 0
-progressBar.Parent = loadingFrame
-Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0,10)
-
--- Buttons
-local discordButton = Instance.new("TextButton")
-discordButton.Size = UDim2.new(0,180,0,40)
-discordButton.Position = UDim2.new(0.5,-90,0,140)
-discordButton.BackgroundColor3 = Color3.fromRGB(70,120,250)
-discordButton.TextColor3 = Color3.new(1,1,1)
-discordButton.Font = Enum.Font.GothamBold
-discordButton.Text = "Join Discord"
-discordButton.BorderSizePixel = 0
-Instance.new("UICorner", discordButton).CornerRadius = UDim.new(0,12)
-discordButton.Visible = false
-discordButton.Parent = loadingFrame
-
-local okButton = discordButton:Clone()
-okButton.Position = UDim2.new(0.5,-90,0,140)
-okButton.Text = "Continue"
-okButton.Parent = loadingFrame
-
--- Load animation
-for i=0,1,0.02 do
-    progressBar.Size = UDim2.new(i,0,0,20)
-    task.wait(0.02)
-end
-discordButton.Visible = true
-okButton.Visible = true
-
-discordButton.MouseButton1Click:Connect(function()
-    local url = "https://discord.gg/YOURINVITE"
-    pcall(function()
-        if setclipboard then
-            setclipboard(url)
-            MenuLib:Notify("Discord Link Copied!", "The invite link has been copied to your clipboard.")
-        end
-    end)
-end)
-
-local finishedLoading = false
-okButton.MouseButton1Click:Connect(function()
-    finishedLoading = true
-    loadingFrame:Destroy()
-end)
-
-repeat task.wait() until finishedLoading
-
---==========================
 -- Main Menu Frame
 --==========================
 local mainFrame = Instance.new("Frame")
@@ -122,10 +48,11 @@ function MenuLib:SetTitle(newTitle)
     title.Text = newTitle
 end
 
--- Beta Tag
-local betaTag = Instance.new("TextButton")
-betaTag.Parent = gui
+-- Beta Tag (Top-right of menu, moves with menu)
+local betaTag = Instance.new("TextLabel")
+betaTag.Parent = mainFrame
 betaTag.Size = UDim2.new(0, 70, 0, 24)
+betaTag.Position = UDim2.new(1, -80, 0, 10) -- top-right
 betaTag.BackgroundColor3 = Color3.fromRGB(90,140,255)
 betaTag.Text = "BETA"
 betaTag.Font = Enum.Font.GothamBold
@@ -133,10 +60,8 @@ betaTag.TextSize = 12
 betaTag.TextColor3 = Color3.new(1,1,1)
 betaTag.BorderSizePixel = 0
 Instance.new("UICorner", betaTag).CornerRadius = UDim.new(0,8)
-local closedPosition = UDim2.new(0.5, -35, 0.5, -12)
-betaTag.Position = closedPosition
 
--- Tabs Container under title
+-- Tab Buttons (flush under menu title)
 local tabButtonsFrame = Instance.new("Frame")
 tabButtonsFrame.Parent = mainFrame
 tabButtonsFrame.Size = UDim2.new(1, -20, 0, 40)
@@ -148,15 +73,6 @@ tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 tabLayout.Padding = UDim.new(0,10)
 
--- Sliding indicator
-local sliderIndicator = Instance.new("Frame")
-sliderIndicator.Size = UDim2.new(0, 100, 0, 4)
-sliderIndicator.Position = UDim2.new(0,0,1,-4)
-sliderIndicator.BackgroundColor3 = Color3.fromRGB(90,140,255)
-sliderIndicator.BorderSizePixel = 0
-sliderIndicator.Parent = tabButtonsFrame
-Instance.new("UICorner", sliderIndicator).CornerRadius = UDim.new(0,2)
-
 -- Tab Content Container
 local tabContainer = Instance.new("Frame")
 tabContainer.Parent = mainFrame
@@ -164,25 +80,7 @@ tabContainer.Size = UDim2.new(1, -20, 1, -120)
 tabContainer.Position = UDim2.new(0,10,0,100)
 tabContainer.BackgroundTransparency = 1
 
-local tabContentLayout = Instance.new("UIListLayout")
-tabContentLayout.FillDirection = Enum.FillDirection.Vertical
-tabContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-tabContentLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-tabContentLayout.Padding = UDim.new(0, 8)
-tabContentLayout.Parent = tabContainer
-
--- Credit
-local credit = Instance.new("TextLabel")
-credit.Parent = mainFrame
-credit.Size = UDim2.new(1, 0, 0, 25)
-credit.Position = UDim2.new(0, 0, 1, -28)
-credit.BackgroundTransparency = 1
-credit.Text = "Made by frostedflakes666"
-credit.Font = Enum.Font.Gotham
-credit.TextSize = 13
-credit.TextColor3 = Color3.fromRGB(150,150,150)
-
--- Draggable function (ignores slider drag)
+-- Draggable function (ignores sliders)
 local function makeDraggable(frame)
     local dragging = false
     local dragStart, startPos
@@ -211,40 +109,6 @@ local function makeDraggable(frame)
     end)
 end
 makeDraggable(mainFrame)
-makeDraggable(betaTag)
-
--- Toggle main menu with RightShift + Beta button follows
-UIS.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        mainFrame.Visible = not mainFrame.Visible
-        if mainFrame.Visible then
-            TweenService:Create(betaTag, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Position = UDim2.new(1, -betaTag.AbsoluteSize.X - 10, mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset)
-            }):Play()
-        else
-            TweenService:Create(betaTag, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Position = closedPosition
-            }):Play()
-        end
-    end
-end)
-
--- Notification Container
-local notifContainer = Instance.new("Frame")
-notifContainer.Size = UDim2.new(0, 260, 0, 500)
-notifContainer.Position = UDim2.new(1, -270, 1, -510)
-notifContainer.AnchorPoint = Vector2.new(0,0)
-notifContainer.BackgroundTransparency = 1
-notifContainer.Parent = gui
-
-local notifLayout = Instance.new("UIListLayout")
-notifLayout.FillDirection = Enum.FillDirection.Vertical
-notifLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-notifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-notifLayout.SortOrder = Enum.SortOrder.LayoutOrder
-notifLayout.Padding = UDim.new(0, 8)
-notifLayout.Parent = notifContainer
 
 --==========================
 -- Menu API (Tabs, Buttons, Toggles, Sliders, Inputs, Dropdowns, Keybinds)
@@ -277,7 +141,7 @@ function MenuLib:CreateTab(name)
     layout.FillDirection = Enum.FillDirection.Vertical
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     layout.VerticalAlignment = Enum.VerticalAlignment.Top
-    layout.Padding = UDim.new(0,10)
+    layout.Padding = UDim.new(0,8)
     layout.Parent = tab.TabContent
 
     -- Tab switching
@@ -349,7 +213,7 @@ function MenuLib:CreateTab(name)
         end)
     end
 
-    -- Slider API
+    -- Slider API (slider drag does not move menu)
     function tab:CreateSlider(text, min, max, callback)
         local frame = Instance.new("Frame")
         frame.Parent = tab.TabContent
@@ -396,163 +260,7 @@ function MenuLib:CreateTab(name)
         end)
     end
 
-    -- Input API
-    function tab:CreateInput(text, placeholder, callback)
-        local frame = Instance.new("Frame")
-        frame.Parent = tab.TabContent
-        frame.Size = UDim2.new(1,0,0,40)
-        frame.BackgroundTransparency = 1
-
-        local label = Instance.new("TextLabel")
-        label.Parent = frame
-        label.Size = UDim2.new(0.35,0,1,0)
-        label.BackgroundTransparency = 1
-        label.Text = text
-        label.TextColor3 = Color3.fromRGB(240,240,240)
-        label.Font = Enum.Font.Gotham
-        label.TextSize = 16
-        label.TextXAlignment = Enum.TextXAlignment.Left
-
-        local inputBox = Instance.new("TextBox")
-        inputBox.Parent = frame
-        inputBox.Size = UDim2.new(0.6,0,0.7,0)
-        inputBox.Position = UDim2.new(0.37,0,0.15,0)
-        inputBox.PlaceholderText = placeholder
-        inputBox.BackgroundColor3 = Color3.fromRGB(60,60,60)
-        inputBox.TextColor3 = Color3.fromRGB(240,240,240)
-        inputBox.ClearTextOnFocus = false
-        inputBox.BorderSizePixel = 0
-        Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0,6)
-        inputBox.FocusLost:Connect(function()
-            callback(inputBox.Text)
-        end)
-    end
-
-    -- Dropdown API
-    function tab:CreateDropdown(text, options, callback)
-        local frame = Instance.new("Frame")
-        frame.Parent = tab.TabContent
-        frame.Size = UDim2.new(1,0,0,40)
-        frame.BackgroundTransparency = 1
-
-        local label = Instance.new("TextLabel")
-        label.Parent = frame
-        label.Size = UDim2.new(0.5,0,1,0)
-        label.BackgroundTransparency = 1
-        label.Text = text
-        label.TextColor3 = Color3.fromRGB(240,240,240)
-        label.Font = Enum.Font.Gotham
-        label.TextSize = 16
-        label.TextXAlignment = Enum.TextXAlignment.Left
-
-        local button = Instance.new("TextButton")
-        button.Parent = frame
-        button.Size = UDim2.new(0.45,0,0.7,0)
-        button.Position = UDim2.new(0.52,0,0.15,0)
-        button.Text = "Select"
-        button.BackgroundColor3 = Color3.fromRGB(60,60,60)
-        button.TextColor3 = Color3.fromRGB(240,240,240)
-        button.BorderSizePixel = 0
-        Instance.new("UICorner", button).CornerRadius = UDim.new(0,6)
-
-        local listFrame = Instance.new("Frame")
-        listFrame.Size = UDim2.new(0.45,0,#options*30,0)
-        listFrame.Position = UDim2.new(0.52,0,1,0)
-        listFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
-        listFrame.Visible = false
-        listFrame.Parent = frame
-        Instance.new("UICorner", listFrame).CornerRadius = UDim.new(0,6)
-
-        for i,opt in ipairs(options) do
-            local optBtn = Instance.new("TextButton")
-            optBtn.Size = UDim2.new(1,0,0,30)
-            optBtn.Position = UDim2.new(0,0,(i-1)*30,0)
-            optBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-            optBtn.TextColor3 = Color3.fromRGB(240,240,240)
-            optBtn.Text = opt
-            optBtn.Parent = listFrame
-            Instance.new("UICorner", optBtn).CornerRadius = UDim.new(0,6)
-            optBtn.MouseButton1Click:Connect(function()
-                button.Text = opt
-                listFrame.Visible = false
-                callback(opt)
-            end)
-        end
-
-        button.MouseButton1Click:Connect(function()
-            listFrame.Visible = not listFrame.Visible
-        end)
-    end
-
-    -- Keybind API
-    function tab:CreateKeybind(text, key, callback)
-        local frame = Instance.new("Frame")
-        frame.Parent = tab.TabContent
-        frame.Size = UDim2.new(1,0,0,40)
-        frame.BackgroundTransparency = 1
-
-        local label = Instance.new("TextLabel")
-        label.Parent = frame
-        label.Size = UDim2.new(0.6,0,1,0)
-        label.BackgroundTransparency = 1
-        label.Text = text.." ["..tostring(key).."]"
-        label.TextColor3 = Color3.fromRGB(240,240,240)
-        label.Font = Enum.Font.Gotham
-        label.TextSize = 16
-        label.TextXAlignment = Enum.TextXAlignment.Left
-
-        UIS.InputBegan:Connect(function(input, processed)
-            if processed then return end
-            if input.KeyCode == key then
-                callback()
-            end
-        end)
-    end
-
     return tab
-end
-
---==========================
--- Notification Function
---==========================
-function MenuLib:Notify(title, text)
-    local notif = Instance.new("Frame")
-    notif.Size = UDim2.new(0, 250, 0, 80)
-    notif.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    notif.BorderSizePixel = 0
-    notif.Parent = notifContainer
-    Instance.new("UICorner", notif).CornerRadius = UDim.new(0,12)
-
-    local notifTitle = Instance.new("TextLabel")
-    notifTitle.Parent = notif
-    notifTitle.Size = UDim2.new(1, -20, 0, 25)
-    notifTitle.Position = UDim2.new(0,10,0,5)
-    notifTitle.BackgroundTransparency = 1
-    notifTitle.Text = title
-    notifTitle.TextColor3 = Color3.fromRGB(240,240,240)
-    notifTitle.Font = Enum.Font.GothamBold
-    notifTitle.TextSize = 16
-    notifTitle.TextXAlignment = Enum.TextXAlignment.Left
-
-    local notifText = Instance.new("TextLabel")
-    notifText.Parent = notif
-    notifText.Size = UDim2.new(1, -20, 0, 40)
-    notifText.Position = UDim2.new(0,10,0,25)
-    notifText.BackgroundTransparency = 1
-    notifText.Text = text
-    notifText.TextColor3 = Color3.fromRGB(200,200,200)
-    notifText.Font = Enum.Font.Gotham
-    notifText.TextSize = 14
-    notifText.TextWrapped = true
-
-    notif.Position = notif.Position + UDim2.new(0, 0, 0, 50)
-    TweenService:Create(notif, TweenInfo.new(0.3), {Position = notif.Position - UDim2.new(0, 0, 0, 50)}):Play()
-
-    task.delay(5, function()
-        TweenService:Create(notif, TweenInfo.new(0.3), {Position = notif.Position + UDim2.new(0, 0, 0, 50)}):Play()
-        task.wait(0.3)
-        notif:Destroy()
-    end)
 end
 
 return MenuLib
