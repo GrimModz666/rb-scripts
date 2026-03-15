@@ -1,11 +1,12 @@
 --// =========================
 -- Frosted UI Library vBeta
--- Improved Version
+-- Fully Fixed & Updated
 -- =========================
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -27,6 +28,62 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "FrostedUI"
 gui.Parent = playerGui
 gui.ResetOnSpawn = false
+
+--=========================
+-- LOADING SCREEN
+--=========================
+
+local loadingScreen = Instance.new("Frame")
+loadingScreen.Parent = gui
+loadingScreen.Size = UDim2.fromScale(1,1)
+loadingScreen.BackgroundColor3 = Color3.fromRGB(15,15,15)
+
+local loadLabel = Instance.new("TextLabel")
+loadLabel.Parent = loadingScreen
+loadLabel.Size = UDim2.fromScale(1,0.1)
+loadLabel.Position = UDim2.fromScale(0,0.4)
+loadLabel.Text = "Loading UI..."
+loadLabel.Font = Enum.Font.GothamBold
+loadLabel.TextSize = 36
+loadLabel.TextColor3 = Color3.fromRGB(255,255,255)
+loadLabel.BackgroundTransparency = 1
+
+local discordBtn = Instance.new("TextButton")
+discordBtn.Parent = loadingScreen
+discordBtn.Size = UDim2.new(0,200,0,50)
+discordBtn.Position = UDim2.new(0.5,-100,0.55,0)
+discordBtn.Text = "Join Discord"
+discordBtn.Font = Enum.Font.GothamBold
+discordBtn.TextSize = 18
+discordBtn.TextColor3 = Color3.new(1,1,1)
+discordBtn.BackgroundColor3 = Color3.fromRGB(90,140,255)
+Instance.new("UICorner",discordBtn)
+
+local continueBtn = Instance.new("TextButton")
+continueBtn.Parent = loadingScreen
+continueBtn.Size = UDim2.new(0,200,0,50)
+continueBtn.Position = UDim2.new(0.5,-100,0.65,0)
+continueBtn.Text = "Continue"
+continueBtn.Font = Enum.Font.GothamBold
+continueBtn.TextSize = 18
+continueBtn.TextColor3 = Color3.new(1,1,1)
+continueBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+Instance.new("UICorner",continueBtn)
+
+discordBtn.MouseButton1Click:Connect(function()
+	-- replace with your Discord invite
+	print("Join Discord clicked!")
+end)
+
+local loaded = Instance.new("BindableEvent")
+
+continueBtn.MouseButton1Click:Connect(function()
+	loaded:Fire()
+end)
+
+-- wait for continue
+loaded.Event:Wait()
+loadingScreen:Destroy()
 
 --=========================
 -- LIBRARY
@@ -73,6 +130,10 @@ title.TextSize = 22
 title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
+function Menu:SetTitle(txt)
+	title.Text = txt
+end
+
 --=========================
 -- BETA BADGE
 --=========================
@@ -89,11 +150,7 @@ beta.TextSize = 12
 Instance.new("UICorner",beta)
 
 local function spinBeta()
-	TweenService:Create(
-		beta,
-		TweenInfo.new(.4,Enum.EasingStyle.Quart),
-		{Rotation = beta.Rotation + 360}
-	):Play()
+	TweenService:Create(beta,TweenInfo.new(.4,Enum.EasingStyle.Quart),{Rotation = beta.Rotation + 360}):Play()
 end
 
 --=========================
@@ -121,7 +178,6 @@ end)
 UIS.InputChanged:Connect(function(input)
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 		local delta = input.Position - dragStart
-
 		main.Position = UDim2.new(
 			startPos.X.Scale,
 			startPos.X.Offset + delta.X,
@@ -132,39 +188,27 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 --=========================
--- OPEN CLOSE
+-- OPEN/CLOSE
 --=========================
 
 local open = true
-
 local function toggleMenu()
 	open = not open
 	spinBeta()
-
 	if open then
 		main.Visible = true
 		main.Size = UDim2.fromScale(.35,0)
-		TweenService:Create(
-			main,
-			TweenInfo.new(.35,Enum.EasingStyle.Quint),
-			{Size = UDim2.fromScale(.35,.55)}
-		):Play()
+		TweenService:Create(main,TweenInfo.new(.35,Enum.EasingStyle.Quint),{Size=UDim2.fromScale(.35,.55)}):Play()
 	else
-		local close = TweenService:Create(
-			main,
-			TweenInfo.new(.25,Enum.EasingStyle.Quad),
-			{Size = UDim2.fromScale(.35,0)}
-		)
+		local close = TweenService:Create(main,TweenInfo.new(.25,Enum.EasingStyle.Quad),{Size=UDim2.fromScale(.35,0)})
 		close:Play()
-		close.Completed:Connect(function()
-			main.Visible = false
-		end)
+		close.Completed:Connect(function() main.Visible=false end)
 	end
 end
 
 UIS.InputBegan:Connect(function(input,gp)
 	if gp then return end
-	if input.KeyCode == Enum.KeyCode.RightShift then
+	if input.KeyCode==Enum.KeyCode.RightShift then
 		toggleMenu()
 	end
 end)
@@ -191,7 +235,7 @@ function Menu:Notify(title,msg)
 	n.Size = UDim2.new(1,0,0,60)
 	n.BackgroundColor3 = Color3.fromRGB(25,25,25)
 	Instance.new("UICorner",n)
-
+	
 	local label = Instance.new("TextLabel")
 	label.Parent = n
 	label.Size = UDim2.new(1,-20,1,-10)
@@ -202,27 +246,19 @@ function Menu:Notify(title,msg)
 	label.Font = Enum.Font.Gotham
 	label.TextWrapped = true
 	label.TextSize = 14
-
+	
 	local bar = Instance.new("Frame")
 	bar.Parent = n
 	bar.Position = UDim2.new(0,0,1,-4)
 	bar.Size = UDim2.new(1,0,0,4)
 	bar.BackgroundColor3 = Color3.fromRGB(90,140,255)
-
-	TweenService:Create(bar,TweenInfo.new(4),{
-		Size = UDim2.new(0,0,0,4)
-	}):Play()
-
+	
+	TweenService:Create(bar,TweenInfo.new(4),{Size=UDim2.new(0,0,0,4)}):Play()
+	
 	n.Position = UDim2.new(1,300,0,0)
-	TweenService:Create(
-		n,
-		TweenInfo.new(.35,Enum.EasingStyle.Quart),
-		{Position = UDim2.new(0,0,0,0)}
-	):Play()
-
-	task.delay(4,function()
-		n:Destroy()
-	end)
+	TweenService:Create(n,TweenInfo.new(.35,Enum.EasingStyle.Quart),{Position=UDim2.new(0,0,0,0)}):Play()
+	
+	task.delay(4,function() n:Destroy() end)
 end
 
 --=========================
@@ -244,7 +280,7 @@ tabLayout.FillDirection = Enum.FillDirection.Horizontal
 tabLayout.Padding = UDim.new(0,10)
 
 tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	tabScroll.CanvasSize = UDim2.new(0,tabLayout.AbsoluteContentSize.X + 10,0,0)
+	tabScroll.CanvasSize = UDim2.new(0,tabLayout.AbsoluteContentSize.X+10,0,0)
 end)
 
 local container = Instance.new("Frame")
@@ -254,12 +290,13 @@ container.Position = UDim2.new(0,10,0,110)
 container.BackgroundTransparency = 1
 
 --=========================
--- CREATE TAB
+-- CREATE TAB FUNCTION
 --=========================
 
 function Menu:CreateTab(name)
 	local tab = {}
 
+	-- Tab Button
 	local button = Instance.new("TextButton")
 	button.Parent = tabScroll
 	button.Size = UDim2.new(0,120,1,0)
@@ -270,6 +307,7 @@ function Menu:CreateTab(name)
 	button.TextSize = 14
 	Instance.new("UICorner",button)
 
+	-- Tab Frame
 	local frame = Instance.new("ScrollingFrame")
 	frame.Parent = container
 	frame.Size = UDim2.new(1,0,1,0)
@@ -282,25 +320,22 @@ function Menu:CreateTab(name)
 	layout.Parent = frame
 	layout.Padding = UDim.new(0,8)
 	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		frame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
+		frame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y+10)
 	end)
 
 	button.MouseButton1Click:Connect(function()
 		for _,t in pairs(Menu.Tabs) do
-			t.Frame.Visible = false
+			t.Frame.Visible=false
 		end
-		frame.Visible = true
+		frame.Visible=true
 	end)
 
 	tab.Frame = frame
 	table.insert(Menu.Tabs,tab)
-
-	if #Menu.Tabs == 1 then
-		frame.Visible = true
-	end
+	if #Menu.Tabs==1 then frame.Visible=true end
 
 	--=========================
-	-- BUTTON
+	-- CREATE BUTTON
 	--=========================
 	function tab:CreateButton(text,callback)
 		local b = Instance.new("TextButton")
@@ -316,7 +351,7 @@ function Menu:CreateTab(name)
 	end
 
 	--=========================
-	-- TOGGLE
+	-- CREATE TOGGLE
 	--=========================
 	function tab:CreateToggle(text,callback)
 		local holder = Instance.new("TextButton")
@@ -343,14 +378,9 @@ function Menu:CreateTab(name)
 		toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
 		Instance.new("UICorner",toggleBtn)
 
-		local active = false
-
+		local active=false
 		local function updateToggle()
-			if active then
-				toggleBtn.BackgroundColor3 = Color3.fromRGB(90,140,255)
-			else
-				toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-			end
+			toggleBtn.BackgroundColor3=active and Color3.fromRGB(90,140,255) or Color3.fromRGB(60,60,60)
 		end
 
 		holder.MouseButton1Click:Connect(function()
@@ -363,7 +393,7 @@ function Menu:CreateTab(name)
 	end
 
 	--=========================
-	-- SLIDER
+	-- CREATE SLIDER
 	--=========================
 	function tab:CreateSlider(text,min,max,callback)
 		local holder = Instance.new("Frame")
@@ -396,25 +426,25 @@ function Menu:CreateTab(name)
 		fill.BackgroundColor3 = Color3.fromRGB(90,140,255)
 		Instance.new("UICorner",fill)
 
-		local dragging = false
+		local dragging=false
 
 		bar.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = true
+			if input.UserInputType==Enum.UserInputType.MouseButton1 then
+				dragging=true
 			end
 		end)
 
 		bar.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				dragging = false
+			if input.UserInputType==Enum.UserInputType.MouseButton1 then
+				dragging=false
 			end
 		end)
 
 		UIS.InputChanged:Connect(function(input)
-			if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			if dragging and input.UserInputType==Enum.UserInputType.MouseMovement then
 				local percent = math.clamp((input.Position.X - bar.AbsolutePosition.X)/bar.AbsoluteSize.X,0,1)
 				fill.Size = UDim2.new(percent,0,1,0)
-				local value = math.floor(min + (max-min)*percent)
+				local value = math.floor(min+(max-min)*percent)
 				callback(value)
 			end
 		end)
